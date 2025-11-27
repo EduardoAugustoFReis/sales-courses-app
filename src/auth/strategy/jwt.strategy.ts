@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -5,8 +6,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 type PayloadProps = {
   sub: number;
   email: string;
+  role: string;
 };
-
+@Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly configService: ConfigService) {
     super({
@@ -17,6 +19,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: PayloadProps) {
-    return { sub: payload.sub, email: payload.email };
+    return payload;
   }
 }

@@ -11,6 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 interface JwtPayload {
   sub: number;
   email: string;
+  role: string;
 }
 
 @Injectable()
@@ -43,7 +44,11 @@ export class AuthService {
       throw new UnauthorizedException('Acesso negado, senha incorreta');
     }
 
-    const payload: JwtPayload = { sub: user.id, email: user.email };
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
     const token = await this.jwtService.signAsync(payload);
 
     return {
