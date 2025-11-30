@@ -7,6 +7,7 @@ import { UsersModule } from 'src/users/users.module';
 import { AuthModule } from 'src/auth/auth.module';
 import jwtConfig from 'src/config/jwt.config';
 import { CoursesModule } from 'src/courses/courses.module';
+import { ModulesModule } from 'src/modules/modules.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { CoursesModule } from 'src/courses/courses.module';
     UsersModule,
     AuthModule,
     CoursesModule,
+    ModulesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -86,7 +86,7 @@ model Lesson {
   id       Int    @id @default(autoincrement())
   title    String
   videoUrl String
-  duration Int // 
+  duration Int  
   position Int
 
   module   Module @relation(fields: [moduleId], references: [id])
