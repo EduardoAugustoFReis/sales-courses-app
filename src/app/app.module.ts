@@ -8,6 +8,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import jwtConfig from 'src/config/jwt.config';
 import { CoursesModule } from 'src/courses/courses.module';
 import { ModulesModule } from 'src/modules/modules.module';
+import { LessonsModule } from 'src/lessons/lessons.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ModulesModule } from 'src/modules/modules.module';
     AuthModule,
     CoursesModule,
     ModulesModule,
+    LessonsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
