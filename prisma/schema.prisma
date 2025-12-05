@@ -5,8 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
   moduleFormat = "cjs"
 }
 
@@ -28,6 +28,13 @@ enum PlanType {
 enum CourseStatus {
   DRAFT
   PUBLISHED
+}
+
+enum PurchaseStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELED
 }
 
 model User {
@@ -86,7 +93,7 @@ model Lesson {
   id       Int    @id @default(autoincrement())
   title    String
   videoUrl String
-  duration Int  
+  duration Int
   position Int
 
   module   Module @relation(fields: [moduleId], references: [id])
@@ -94,12 +101,16 @@ model Lesson {
 }
 
 model Purchase {
-  id        Int      @id @default(autoincrement())
-  student   User     @relation(fields: [studentId], references: [id])
-  studentId Int
-  course    Course   @relation(fields: [courseId], references: [id])
-  courseId  Int
-  createdAt DateTime @default(now())
+  id            Int            @id @default(autoincrement())
+  student       User           @relation(fields: [studentId], references: [id])
+  studentId     Int
+  course        Course         @relation(fields: [courseId], references: [id])
+  courseId      Int
+  price         Float
+  status        PurchaseStatus @default(PENDING)
+  transactionId String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   @@unique([studentId, courseId])
 }

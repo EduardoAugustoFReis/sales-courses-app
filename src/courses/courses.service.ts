@@ -112,4 +112,39 @@ export class CoursesService {
 
     return { message: 'Curso atualizado com sucesso', updatedCourse };
   };
+
+  publish = async (id: number, userId: number) => {
+    const course = await this.prismaService.course.findUnique({
+      where: { id },
+      include: {
+        modules: true,
+      },
+    });
+
+    if (!course) throw new NotFoundException('Curso não encontrado');
+
+    if (course.teacherId !== userId) {
+      throw new UnauthorizedException('Você não pode publicar este curso');
+    }
+
+    if (course.status !== 'DRAFT') {
+      throw new UnauthorizedException('Este curso já está publicado');
+    }
+
+    if (course.modules.length === 0) {
+      throw new UnauthorizedException(
+        'O curso precisa ter pelo menos 1 módulo antes de ser publicado',
+      );
+    }
+
+    const updatedCourse = await this.prismaService.course.update({
+      where: { id },
+      data: { status: 'PUBLISHED' },
+    });
+
+    return {
+      message: 'Curso publicado com sucesso',
+      updatedCourse,
+    };
+  };
 }

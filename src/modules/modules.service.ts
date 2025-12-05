@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
@@ -40,8 +44,26 @@ export class ModulesService {
     return { message: 'Modulo criado.', newModule };
   };
 
-  listAll = async (courseId: number) => {
-    await this.findCourseOrFail(courseId);
+  listAll = async (courseId: number, studentId: number) => {
+    const course = await this.findCourseOrFail(courseId);
+
+    if (course.status === 'DRAFT') {
+      throw new UnauthorizedException(
+        'Este curso ainda não está disponível para acesso.',
+      );
+    }
+
+    const purchase = await this.prismaService.purchase.findUnique({
+      where: {
+        studentId_courseId: { studentId, courseId },
+      },
+    });
+
+    if (!purchase) {
+      throw new UnauthorizedException(
+        'Você precisa comprar o curso para acessar os módulos.',
+      );
+    }
 
     return this.prismaService.module.findMany({
       where: { courseId },
@@ -50,8 +72,25 @@ export class ModulesService {
     });
   };
 
-  listOne = async (courseId: number, moduleId: number) => {
-    await this.findCourseOrFail(courseId);
+  listOne = async (courseId: number, moduleId: number, studentId: number) => {
+    const course = await this.findCourseOrFail(courseId);
+
+    if (course.status === 'DRAFT') {
+      throw new UnauthorizedException(
+        'Este curso ainda não está disponível para acesso.',
+      );
+    }
+
+    const purchase = await this.prismaService.purchase.findUnique({
+      where: { studentId_courseId: { studentId, courseId } },
+    });
+
+    if (!purchase) {
+      throw new UnauthorizedException(
+        'Você precisa comprar o curso para acessar este módulo.',
+      );
+    }
+
     const module = await this.findModuleOrFail(moduleId);
 
     if (module.courseId !== courseId) {
@@ -63,6 +102,7 @@ export class ModulesService {
 
   delete = async (courseId: number, moduleId: number) => {
     await this.findCourseOrFail(courseId);
+
     const module = await this.findModuleOrFail(moduleId);
 
     if (module.courseId !== courseId) {

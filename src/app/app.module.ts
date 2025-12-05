@@ -9,6 +9,7 @@ import jwtConfig from 'src/config/jwt.config';
 import { CoursesModule } from 'src/courses/courses.module';
 import { ModulesModule } from 'src/modules/modules.module';
 import { LessonsModule } from 'src/lessons/lessons.module';
+import { PurchasesModule } from 'src/purchases/purchases.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { LessonsModule } from 'src/lessons/lessons.module';
     CoursesModule,
     ModulesModule,
     LessonsModule,
+    PurchasesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -63,4 +63,14 @@ export class CoursesController {
   ) {
     return this.courserService.update(id, updateCourseDto, user.sub);
   }
+
+  @Patch(':id/publish')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('TEACHER')
+  publishCourse(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: RequestUserDto,
+  ) {
+    return this.courserService.publish(id, user.sub);
+  }
 }
