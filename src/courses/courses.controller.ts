@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -34,8 +35,8 @@ export class CoursesController {
   }
 
   @Get()
-  listAllCourses() {
-    return this.courserService.listAll();
+  listAllCourses(@Query('page') page = 1, @Query('limit') limit = 10) {
+    return this.courserService.listAll(Number(page), Number(limit));
   }
 
   @Get(':id')

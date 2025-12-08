@@ -118,26 +118,33 @@ export class PurchasesService {
     return purchases;
   };
 
-  listAllPurchases = async () => {
-    const purchases = await this.prismaService.purchase.findMany({
-      include: {
-        course: {
-          select: {
-            title: true,
-          },
-        },
-        student: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  listAllPurchases = async (page = 1, limit = 10) => {
+    const skip = (page - 1) * limit;
 
-    return purchases;
+    const [total, purchases] = await this.prismaService.$transaction([
+      this.prismaService.purchase.count(),
+      this.prismaService.purchase.findMany({
+        skip,
+        take: limit,
+        include: {
+          course: {
+            select: { title: true },
+          },
+          student: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    return {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      data: purchases,
+    };
   };
 
   refund = async (purchaseId: number, user: RequestUserDto) => {

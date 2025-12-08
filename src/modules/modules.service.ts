@@ -44,7 +44,14 @@ export class ModulesService {
     return { message: 'Modulo criado.', newModule };
   };
 
-  listAll = async (courseId: number, studentId: number) => {
+  listAll = async (
+    courseId: number,
+    studentId: number,
+    page = 1,
+    limit = 10,
+  ) => {
+    const skip = (page - 1) * limit;
+
     const course = await this.findCourseOrFail(courseId);
 
     if (course.status === 'DRAFT') {
@@ -65,11 +72,28 @@ export class ModulesService {
       );
     }
 
-    return this.prismaService.module.findMany({
-      where: { courseId },
-      orderBy: { position: 'asc' },
-      include: { course: true },
-    });
+    const [total, modules] = await this.prismaService.$transaction([
+      this.prismaService.module.count({
+        where: { courseId },
+      }),
+      this.prismaService.module.findMany({
+        where: { courseId },
+        skip,
+        take: limit,
+        include: {
+          lessons: true,
+        },
+        orderBy: { position: 'asc' },
+      }),
+    ]);
+
+    return {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      data: modules,
+    };
   };
 
   listOne = async (courseId: number, moduleId: number, studentId: number) => {

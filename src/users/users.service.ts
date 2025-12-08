@@ -31,16 +31,30 @@ export class UsersService {
     return { message: 'Usuário criado com sucesso', newUser };
   };
 
-  listAll = async () => {
-    const users = await this.prismaService.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-      },
-    });
+  listAll = async (page = 1, limit = 10) => {
+    const skip = (page - 1) * limit;
 
-    return users;
+    const [total, users] = await this.prismaService.$transaction([
+      this.prismaService.user.count(),
+      this.prismaService.user.findMany({
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      }),
+    ]);
+
+    return {
+      page,
+      total,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      data: users,
+    };
   };
 
   listOne = async (id: number) => {

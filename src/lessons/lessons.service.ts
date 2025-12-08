@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { CreateLessonDto } from './dto/create-lesson.dto';
@@ -6,6 +11,39 @@ import { CreateLessonDto } from './dto/create-lesson.dto';
 @Injectable()
 export class LessonsService {
   constructor(private readonly prismaService: PrismaService) {}
+
+  private async validateAccess(moduleId: number, userId: number) {
+    const module = await this.prismaService.module.findUnique({
+      where: { id: moduleId },
+      include: {
+        course: {
+          include: { purchases: true, teacher: true },
+        },
+      },
+    });
+
+    if (!module) {
+      throw new NotFoundException('Modulo não encontrado');
+    }
+
+    const course = module.course;
+
+    if (course.status === 'DRAFT') {
+      throw new UnauthorizedException('Este curso não está disponível');
+    }
+
+    const isTeacherOwner = course.teacherId === userId;
+
+    const hasPurchase = course.purchases.some(
+      (puchase) => puchase.studentId === userId && puchase.status === 'PAID',
+    );
+
+    if (!isTeacherOwner && !hasPurchase) {
+      throw new ForbiddenException('Você não tem acesso a esse conteudo');
+    }
+
+    return module;
+  }
 
   private async findModuleOrFail(moduleId: number) {
     const module = await this.prismaService.module.findUnique({
@@ -47,25 +85,35 @@ export class LessonsService {
     return { message: 'Lição criada', newLesson };
   };
 
-  listAll = async (moduleId: number) => {
-    await this.findModuleOrFail(moduleId);
+  async listAll(moduleId: number, userId: number, page = 1, limit = 10) {
+    await this.validateAccess(moduleId, userId);
 
-    const lessons = await this.prismaService.lesson.findMany({
-      where: { moduleId },
-      orderBy: { position: 'asc' },
-      include: { module: true },
-    });
+    const skip = (page - 1) * limit;
 
-    return lessons;
-  };
+    const [total, lessons] = await this.prismaService.$transaction([
+      this.prismaService.lesson.count({
+        where: { moduleId },
+      }),
+      this.prismaService.lesson.findMany({
+        where: { moduleId },
+        skip,
+        take: limit,
+        orderBy: { id: 'asc' },
+      }),
+    ]);
 
-  listOne = async (moduleId: number, lessonId: number) => {
-    await this.findModuleOrFail(moduleId);
+    return { page, limit, totalPage: Math.ceil(total / limit), data: lessons };
+  }
+
+  listOne = async (moduleId: number, lessonId: number, userId: number) => {
+    await this.validateAccess(moduleId, userId);
     const lesson = await this.findLessonOrFail(lessonId);
 
     if (lesson.moduleId !== moduleId) {
       throw new NotFoundException('Está aula não pertence a esse curso');
     }
+
+    if (!lesson) throw new NotFoundException('Aula não encontrada.');
 
     return lesson;
   };

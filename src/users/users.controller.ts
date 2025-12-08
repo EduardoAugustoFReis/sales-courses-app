@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -22,8 +23,8 @@ export class UsersController {
   }
 
   @Get()
-  listAllUsers() {
-    return this.userService.listAll();
+  listAllUsers(@Query('page') page = 1, @Query('limit') limit = 10) {
+    return this.userService.listAll(Number(page), Number(limit));
   }
 
   @Get(':id')

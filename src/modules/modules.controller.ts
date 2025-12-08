@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ModulesService } from './modules.service';
@@ -33,8 +34,15 @@ export class ModulesController {
   listAllModules(
     @Param('courseId', ParseIntPipe) courseId: number,
     @GetUser() user: RequestUserDto,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
   ) {
-    return this.modulesService.listAll(courseId, user.sub);
+    return this.modulesService.listAll(
+      courseId,
+      user.sub,
+      Number(page),
+      Number(limit),
+    );
   }
 
   @UseGuards(JwtAuthGuard)

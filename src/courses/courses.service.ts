@@ -26,16 +26,25 @@ export class CoursesService {
     return { message: 'Curso criado com sucesso.', newCourse };
   };
 
-  listAll = async () => {
-    const courses = await this.prismaService.course.findMany({
-      include: {
-        teacher: {
-          select: { id: true, name: true },
-        },
-      },
-    });
+  listAll = async (page = 1, limit = 10) => {
+    const skip = (page - 1) * limit;
 
-    return courses;
+    const [total, courses] = await this.prismaService.$transaction([
+      this.prismaService.course.count(),
+      this.prismaService.course.findMany({
+        skip,
+        take: limit,
+        orderBy: { id: 'asc' },
+      }),
+    ]);
+
+    return {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
+      data: courses,
+    };
   };
 
   listOne = async (id: number) => {

@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { PurchasesService } from './purchases.service';
@@ -40,8 +41,8 @@ export class PurchasesController {
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  listAllPurchases() {
-    return this.purchasesService.listAllPurchases();
+  listAllPurchases(@Query('page') page = 1, @Query('limit') limit = 10) {
+    return this.purchasesService.listAllPurchases(Number(page), Number(limit));
   }
 
   @Post(':purchaseId/refund')
