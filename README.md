@@ -93,6 +93,30 @@ sales-courses-app/
 
 ```
 
+📘 Documentação da API (Swagger)
+
+A aplicação possui documentação automática gerada com Swagger, facilitando a inspeção e teste dos endpoints diretamente pelo navegador.
+
+🔗 Acesse o Swagger:
+
+Depois de rodar o servidor:
+
+➡️ http://localhost:3000/api
+
+✨ O Swagger inclui:
+
+Descrição detalhada de cada rota
+
+Schemas dos DTOs
+
+Validações
+
+Exemplo completo de requisições
+
+Responses de sucesso e erro
+
+Autenticação com Bearer Token (JWT)
+
 🔧 Principais Endpoints da API
 
 👤 Users (Usuários)
