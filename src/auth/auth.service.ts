@@ -7,6 +7,7 @@ import { HashingService } from 'src/common/Hash/hash.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateLoginDto } from './dto/create-login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { LoginResponse } from './types/auth.types';
 
 interface JwtPayload {
   sub: number;
@@ -22,7 +23,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  login = async (createLoginDto: CreateLoginDto) => {
+  login = async (createLoginDto: CreateLoginDto): Promise<LoginResponse> => {
     const user = await this.prismaService.user.findFirst({
       where: {
         email: createLoginDto.email,

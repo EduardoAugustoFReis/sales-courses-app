@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { HashingService } from 'src/common/Hash/hash.service';
+import { PaginatedUsers, UserResponse } from './types/users.types';
 
 @Injectable()
 export class UsersService {
@@ -11,7 +12,9 @@ export class UsersService {
     private readonly hashingService: HashingService,
   ) {}
 
-  create = async (createUserDto: CreateUserDto) => {
+  create = async (
+    createUserDto: CreateUserDto,
+  ): Promise<{ message: string; newUser: UserResponse }> => {
     const passwordHashed = await this.hashingService.hashPassword(
       createUserDto.password,
     );
@@ -31,7 +34,7 @@ export class UsersService {
     return { message: 'Usuário criado com sucesso', newUser };
   };
 
-  listAll = async (page = 1, limit = 10) => {
+  listAll = async (page = 1, limit = 10): Promise<PaginatedUsers> => {
     const skip = (page - 1) * limit;
 
     const [total, users] = await this.prismaService.$transaction([
@@ -57,7 +60,7 @@ export class UsersService {
     };
   };
 
-  listOne = async (id: number) => {
+  listOne = async (id: number): Promise<UserResponse> => {
     const user = await this.prismaService.user.findUnique({
       where: {
         id: id,
@@ -77,7 +80,7 @@ export class UsersService {
     return user;
   };
 
-  delete = async (id: number) => {
+  delete = async (id: number): Promise<{ message: string }> => {
     const user = await this.prismaService.user.findUnique({
       where: {
         id: id,
@@ -102,7 +105,10 @@ export class UsersService {
     return { message: 'Usuário deletado com sucesso' };
   };
 
-  update = async (id: number, updateUserDto: UpdateUserDto) => {
+  update = async (
+    id: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<{ message: string; updatedUser: UserResponse }> => {
     const user = await this.prismaService.user.findUnique({
       where: {
         id: id,

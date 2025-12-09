@@ -6,12 +6,23 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import {
+  CourseDetailResponse,
+  CreateCourseResponse,
+  DeleteCourseResponse,
+  PaginationCourse,
+  PublishCourseResponse,
+  UpdateCourseResponse,
+} from './types/courses.types';
 
 @Injectable()
 export class CoursesService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  create = async (createCourseDto: CreateCourseDto, userId: number) => {
+  create = async (
+    createCourseDto: CreateCourseDto,
+    userId: number,
+  ): Promise<CreateCourseResponse> => {
     const newCourse = await this.prismaService.course.create({
       data: {
         title: createCourseDto.title,
@@ -26,7 +37,7 @@ export class CoursesService {
     return { message: 'Curso criado com sucesso.', newCourse };
   };
 
-  listAll = async (page = 1, limit = 10) => {
+  listAll = async (page = 1, limit = 10): Promise<PaginationCourse> => {
     const skip = (page - 1) * limit;
 
     const [total, courses] = await this.prismaService.$transaction([
@@ -47,7 +58,7 @@ export class CoursesService {
     };
   };
 
-  listOne = async (id: number) => {
+  listOne = async (id: number): Promise<CourseDetailResponse> => {
     const course = await this.prismaService.course.findUnique({
       where: {
         id: id,
@@ -69,7 +80,10 @@ export class CoursesService {
     return course;
   };
 
-  delete = async (id: number, userId: number) => {
+  delete = async (
+    id: number,
+    userId: number,
+  ): Promise<DeleteCourseResponse> => {
     const course = await this.prismaService.course.findUnique({
       where: {
         id: id,
@@ -93,7 +107,7 @@ export class CoursesService {
     id: number,
     updateCourseDto: UpdateCourseDto,
     userId: number,
-  ) => {
+  ): Promise<UpdateCourseResponse> => {
     const course = await this.prismaService.course.findUnique({
       where: {
         id: id,
@@ -122,7 +136,10 @@ export class CoursesService {
     return { message: 'Curso atualizado com sucesso', updatedCourse };
   };
 
-  publish = async (id: number, userId: number) => {
+  publish = async (
+    id: number,
+    userId: number,
+  ): Promise<PublishCourseResponse> => {
     const course = await this.prismaService.course.findUnique({
       where: { id },
       include: {
