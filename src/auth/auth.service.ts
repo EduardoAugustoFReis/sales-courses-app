@@ -8,6 +8,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateLoginDto } from './dto/create-login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginResponse } from './types/auth.types';
+import { RequestUserDto } from 'src/common/dto/request-user.dto';
 
 interface JwtPayload {
   sub: number;
@@ -60,5 +61,19 @@ export class AuthService {
       },
       token,
     };
+  };
+
+  profile = async (user: RequestUserDto) => {
+    const userDb = await this.prismaService.user.findUnique({
+      where: { id: user.sub },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    });
+
+    return userDb;
   };
 }
