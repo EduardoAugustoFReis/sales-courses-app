@@ -120,19 +120,20 @@ Autenticação com Bearer Token (JWT)
 🔧 Principais Endpoints da API
 
 👤 Users (Usuários)
-| Método | Rota         | Descrição                |
-| ------ | ------------ | ------------------------ |
-| POST   | `/users`     | Criar usuário            |
-| GET    | `/users`     | Listar todos os usuários |
-| GET    | `/users/:id` | Buscar usuário por ID    |
-| DELETE | `/users/:id` | Deletar usuário          |
-| PATCH  | `/users/:id` | Atualizar usuário        |
+| Método | Rota                            | Descrição                  |
+| ------ | --------------------------------| ---------------------------|
+| POST   | `/users`                        | Criar usuário              |
+| GET    | `/users`                        | Listar todos os usuários   |
+| GET    | `/users/:id`                    | Buscar usuário por ID      |
+| DELETE | `/users/:id`                    | Deletar usuário            |
+| PATCH  | `/users/:id`                    | Atualizar usuário          |
+| PATCH  | `/users/:id/promote-to-teacher` | Promover user para teahcer |
 
 🔐 Auth (Autenticação)
 | Método | Rota             | Descrição               |
 | ------ | ---------------- | ----------------------- |
-| POST   | `/auth/register` | Registrar usuário       |
-| POST   | `/auth/login`    | Fazer login e gerar JWT |
+| GET   | `/auth/me`        | Buscar dados do user    |
+| POST   | `/auth`          | Fazer login e gerar JWT |
 
 🎓 Courses (Cursos)
 | Método | Rota                   | Descrição                |
