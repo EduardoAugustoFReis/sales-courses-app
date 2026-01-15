@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -141,5 +145,38 @@ export class UsersService {
     });
 
     return { message: 'Usuário atualizado com sucesso', updatedUser };
+  };
+
+  promoteToTeacher = async (id: number) => {
+    const user = await this.prismaService.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    if (user.role === 'TEACHER') {
+      throw new BadRequestException('Usuário já é um professor');
+    }
+
+    if (user.role === 'ADMIN') {
+      throw new BadRequestException('ADMIN não pode ser rebaixado/promovido');
+    }
+
+    const update = await this.prismaService.user.update({
+      where: { id: user.id },
+      data: {
+        role: 'TEACHER',
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
+    });
+
+    return { message: 'Promovido a professor', update };
   };
 }
