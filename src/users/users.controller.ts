@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -23,6 +24,7 @@ import {
 import { JwtAuthGuard } from 'src/auth/guard/jwt.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import type { RequestUserDto } from 'src/common/dto/request-user.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -36,6 +38,8 @@ export class UsersController {
     return this.userService.create(createUserDto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Get()
   @ApiOperation({ summary: 'Listar todos os usuário' })
   @ApiQuery({
@@ -54,6 +58,8 @@ export class UsersController {
     return this.userService.listAll(Number(page), Number(limit));
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Get(':id')
   @ApiOperation({ summary: 'Buscar usuário por ID' })
   @ApiParam({ name: 'id', type: Number, description: 'ID do usuário' })
@@ -61,6 +67,8 @@ export class UsersController {
     return this.userService.listOne(id);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Delete(':id')
   @ApiOperation({ summary: 'Deletar usuário por ID' })
   @ApiParam({ name: 'id', type: Number, description: 'ID do usuário' })
@@ -68,14 +76,17 @@ export class UsersController {
     return this.userService.delete(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @ApiOperation({ summary: 'Atualizar usuário' })
   @ApiParam({ name: 'id', type: Number, description: 'ID do usuário' })
   updateUser(
+    @Req() req: RequestUserDto,
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.userService.update(id, updateUserDto);
+    const userId = req.sub;
+    return this.userService.update(userId, id, updateUserDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -84,5 +95,4 @@ export class UsersController {
   promoteToTeacher(@Param('id', ParseIntPipe) id: number) {
     return this.userService.promoteToTeacher(id);
   }
-
 }

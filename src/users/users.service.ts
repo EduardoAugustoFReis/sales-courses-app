@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -110,6 +111,7 @@ export class UsersService {
   };
 
   update = async (
+    userId: number,
     id: number,
     updateUserDto: UpdateUserDto,
   ): Promise<{ message: string; updatedUser: UserResponse }> => {
@@ -121,6 +123,12 @@ export class UsersService {
 
     if (!user) {
       throw new NotFoundException('Usuário não encontrado');
+    }
+
+    if (userId !== user.id) {
+      throw new UnauthorizedException(
+        'Você não pode atualizar os dados desse usuário',
+      );
     }
 
     let password = user.passwordHash;
