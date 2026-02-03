@@ -41,8 +41,11 @@ export class CoursesService {
     const skip = (page - 1) * limit;
 
     const [total, courses] = await this.prismaService.$transaction([
-      this.prismaService.course.count(),
+      this.prismaService.course.count({
+        where: { status: 'PUBLISHED' },
+      }),
       this.prismaService.course.findMany({
+        where: { status: 'PUBLISHED' },
         skip,
         take: limit,
         orderBy: { id: 'asc' },
@@ -171,6 +174,30 @@ export class CoursesService {
     return {
       message: 'Curso publicado com sucesso',
       updatedCourse,
+    };
+  };
+
+  listByTeacher = async (teacherId: number, page = 1, limit = 10) => {
+    const skip = (page - 1) * limit;
+
+    const [total, courses] = await this.prismaService.$transaction([
+      this.prismaService.course.count({
+        where: { teacherId },
+      }),
+      this.prismaService.course.findMany({
+        where: { teacherId },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    return {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
+      data: courses,
     };
   };
 }

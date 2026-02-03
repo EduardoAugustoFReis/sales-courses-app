@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ModulesService } from './modules.service';
@@ -24,6 +25,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { RolesGuard } from 'src/common/guards/roles.guard';
 
 @ApiTags('Modules')
 @ApiParam({ name: 'courseId', type: Number })
@@ -31,6 +34,8 @@ import {
 export class ModulesController {
   constructor(private readonly modulesService: ModulesService) {}
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('TEACHER')
   @Post()
   @ApiOperation({ summary: 'Criar um módulo em um curso' })
   @ApiResponse({ status: 201, description: 'Módulo criado com sucesso' })
@@ -39,6 +44,27 @@ export class ModulesController {
     @Body() createModuleDto: CreateModuleDto,
   ) {
     return this.modulesService.create(courseId, createModuleDto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('TEACHER')
+  @Get('/teacher')
+  listTeacherModules(
+    @Param('courseId', ParseIntPipe) courseId: number,
+    @GetUser() user: RequestUserDto,
+  ) {
+    return this.modulesService.listTeacherModules(courseId, user.sub);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('TEACHER')
+  @Get('teacher/:moduleId')
+  listOneTeacherModule(
+    @Param('courseId', ParseIntPipe) courseId: number,
+    @Param('moduleId', ParseIntPipe) moduleId: number,
+    @GetUser() user: RequestUserDto,
+  ) {
+    return this.modulesService.listOneTeacher(courseId, moduleId, user.sub);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -75,7 +101,8 @@ export class ModulesController {
     return this.modulesService.listOne(courseId, moduleId, user.sub);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('TEACHER')
   @ApiBearerAuth()
   @Delete(':moduleId')
   @ApiOperation({ summary: 'Excluir um módulo' })
@@ -84,11 +111,13 @@ export class ModulesController {
   deleteModule(
     @Param('courseId', ParseIntPipe) courseId: number,
     @Param('moduleId', ParseIntPipe) moduleId: number,
+    @GetUser() user: RequestUserDto,
   ) {
-    return this.modulesService.delete(courseId, moduleId);
+    return this.modulesService.delete(courseId, moduleId, user.sub);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('TEACHER')
   @ApiBearerAuth()
   @Patch(':moduleId')
   @ApiOperation({ summary: 'Atualizar um módulo' })
@@ -97,8 +126,14 @@ export class ModulesController {
   updateModule(
     @Param('courseId', ParseIntPipe) courseId: number,
     @Param('moduleId', ParseIntPipe) moduleId: number,
+    @GetUser() user: RequestUserDto,
     @Body() updateModuleDto: UpdateModuleDto,
   ) {
-    return this.modulesService.update(courseId, moduleId, updateModuleDto);
+    return this.modulesService.update(
+      courseId,
+      moduleId,
+      user.sub,
+      updateModuleDto,
+    );
   }
 }

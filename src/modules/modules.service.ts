@@ -30,18 +30,94 @@ export class ModulesService {
 
   create = async (courseId: number, createModuleDto: CreateModuleDto) => {
     await this.findCourseOrFail(courseId);
+
+    const lastModule = await this.prismaService.module.findFirst({
+      where: { courseId },
+      orderBy: { position: 'desc' },
+      select: { position: true },
+    });
+
+    const nextPosition = lastModule ? lastModule.position + 1 : 1;
+
     const newModule = await this.prismaService.module.create({
       data: {
         title: createModuleDto.title,
-        position: createModuleDto.position,
+        position: nextPosition,
         courseId,
-      },
-      include: {
-        course: true,
       },
     });
 
-    return { message: 'Modulo criado.', newModule };
+    return {
+      message: 'Módulo criado com sucesso',
+      newModule,
+    };
+  };
+
+  listTeacherModules = async (courseId: number, teacherId: number) => {
+    const course = await this.findCourseOrFail(courseId);
+
+    if (course.teacherId !== teacherId) {
+      throw new UnauthorizedException('Acesso não autorizado');
+    }
+
+    const modules = await this.prismaService.module.findMany({
+      where: { courseId },
+      include: {
+        lessons: true,
+      },
+      orderBy: {
+        position: 'asc',
+      },
+    });
+
+    return modules;
+  };
+
+  listOneTeacher = async (
+    courseId: number,
+    moduleId: number,
+    teacherId: number,
+  ) => {
+    const course = await this.findCourseOrFail(courseId);
+
+    if (course.teacherId !== teacherId) {
+      throw new UnauthorizedException('Você não é o dono deste curso');
+    }
+
+    const module = await this.prismaService.module.findFirst({
+      where: {
+        id: moduleId,
+        courseId,
+      },
+      include: {
+        course: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            teacher: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        lessons: {
+          select: {
+            id: true,
+            title: true,
+            position: true,
+          },
+        },
+      },
+      orderBy: { position: 'asc' },
+    });
+
+    if (!module) {
+      throw new NotFoundException('Módulo não encontrado');
+    }
+
+    return module;
   };
 
   listAll = async (
@@ -124,13 +200,17 @@ export class ModulesService {
     return module;
   };
 
-  delete = async (courseId: number, moduleId: number) => {
+  delete = async (courseId: number, moduleId: number, teacherId: number) => {
     await this.findCourseOrFail(courseId);
 
     const module = await this.findModuleOrFail(moduleId);
 
     if (module.courseId !== courseId) {
       throw new NotFoundException('Este módulo não pertence a esse curso.');
+    }
+
+    if (module.course.teacherId !== teacherId) {
+      throw new UnauthorizedException('Você não pode excluir esse módulo.');
     }
 
     await this.prismaService.module.delete({
@@ -145,6 +225,7 @@ export class ModulesService {
   update = async (
     courseId: number,
     moduleId: number,
+    teacherId: number,
     updateModuleDto: UpdateModuleDto,
   ) => {
     await this.findCourseOrFail(courseId);
@@ -154,13 +235,16 @@ export class ModulesService {
       throw new NotFoundException('Este módulo não pertence a esse curso.');
     }
 
+    if (module.course.teacherId !== teacherId) {
+      throw new UnauthorizedException('Você não pode excluir esse módulo.');
+    }
+
     const updatedModule = await this.prismaService.module.update({
       where: {
         id: module.id,
       },
       data: {
         title: updateModuleDto.title ?? module.title,
-        position: updateModuleDto.position ?? module.position,
       },
       include: {
         course: true,

@@ -6,16 +6,17 @@ export type PaginationCourse = {
   data: CourseProps[];
 };
 
+export type CourseStatus = 'DRAFT' | 'PUBLISHED';
+
 export type CourseProps = {
   id: number;
   title: string;
   description: string | null;
   imageUrl: string | null;
   price: number;
-  status: string;
+  status: CourseStatus;
   teacherId: number;
 };
-
 export type CreateCourseResponse = {
   message: string;
   newCourse: CourseProps;

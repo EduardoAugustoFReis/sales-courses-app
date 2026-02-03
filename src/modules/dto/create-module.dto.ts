@@ -9,12 +9,4 @@ export class CreateModuleDto {
   @IsString()
   @IsNotEmpty()
   title: string;
-
-  @ApiProperty({
-    description: 'Posição do Módulo dentro do curso',
-    example: 1,
-  })
-  @IsInt()
-  @IsNotEmpty()
-  position: number;
 }

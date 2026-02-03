@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -43,6 +44,21 @@ export class CoursesController {
     @GetUser() user: RequestUserDto,
   ) {
     return this.courserService.create(createCourseDto, user.sub);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('TEACHER')
+  @Get('/teacher-courses')
+  listMyCourses(
+    @GetUser() user: RequestUserDto,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ) {
+    return this.courserService.listByTeacher(
+      user.sub,
+      Number(page),
+      Number(limit),
+    );
   }
 
   @Get()
