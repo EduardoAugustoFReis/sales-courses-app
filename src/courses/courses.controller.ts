@@ -80,6 +80,11 @@ export class CoursesController {
     return this.courserService.listAll(Number(page), Number(limit));
   }
 
+  @Get(':id/public')
+  getPublicCourse(@Param('id', ParseIntPipe) id: number) {
+    return this.courserService.getPublicCourse(id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Buscar um curso pelo ID' })
   @ApiParam({ name: 'id', example: 1, description: 'ID do curso' })

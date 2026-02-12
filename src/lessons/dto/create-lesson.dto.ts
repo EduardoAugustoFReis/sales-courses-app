@@ -18,10 +18,4 @@ export class CreateLessonDto {
   @IsNumber()
   @Type(() => Number)
   duration: number;
-
-  @ApiProperty({ description: 'Posição (ordem) da aula dentro do módulo' })
-  @IsNotEmpty()
-  @IsNumber()
-  @Type(() => Number)
-  position: number;
 }

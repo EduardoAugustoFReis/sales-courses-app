@@ -37,6 +37,30 @@ export class CoursesService {
     return { message: 'Curso criado com sucesso.', newCourse };
   };
 
+  listByTeacher = async (teacherId: number, page = 1, limit = 10) => {
+    const skip = (page - 1) * limit;
+
+    const [total, courses] = await this.prismaService.$transaction([
+      this.prismaService.course.count({
+        where: { teacherId },
+      }),
+      this.prismaService.course.findMany({
+        where: { teacherId },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    return {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
+      data: courses,
+    };
+  };
+
   listAll = async (page = 1, limit = 10): Promise<PaginationCourse> => {
     const skip = (page - 1) * limit;
 
@@ -58,6 +82,54 @@ export class CoursesService {
       total,
       totalPage: Math.ceil(total / limit),
       data: courses,
+    };
+  };
+
+  getPublicCourse = async (id: number) => {
+    const course = await this.prismaService.course.findUnique({
+      where: { id },
+      include: {
+        teacher: {
+          select: { name: true, },
+        },
+        modules: {
+          select: {
+            id: true,
+            lessons: {
+              select: { duration: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!course || course.status !== 'PUBLISHED') {
+      throw new NotFoundException('Curso não encontrado');
+    }
+
+    const totalLessons = course.modules.reduce(
+      (acc, module) => acc + module.lessons.length,
+      0,
+    );
+
+    const totalDuration = course.modules.reduce(
+      (acc, module) =>
+        acc + module.lessons.reduce((sum, l) => sum + l.duration, 0),
+      0,
+    );
+
+    return {
+      id: course.id,
+      title: course.title,
+      description: course.description,
+      imageUrl: course.imageUrl,
+      price: course.price,
+      teacher: course.teacher,
+      stats: {
+        modules: course.modules.length,
+        lessons: totalLessons,
+        duration: totalDuration,
+      },
     };
   };
 
@@ -177,27 +249,4 @@ export class CoursesService {
     };
   };
 
-  listByTeacher = async (teacherId: number, page = 1, limit = 10) => {
-    const skip = (page - 1) * limit;
-
-    const [total, courses] = await this.prismaService.$transaction([
-      this.prismaService.course.count({
-        where: { teacherId },
-      }),
-      this.prismaService.course.findMany({
-        where: { teacherId },
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-      }),
-    ]);
-
-    return {
-      page,
-      limit,
-      total,
-      totalPage: Math.ceil(total / limit),
-      data: courses,
-    };
-  };
 }

@@ -23,77 +23,124 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
 @ApiTags('Lessons')
+@ApiBearerAuth()
+@ApiParam({ name: 'courseId', type: Number })
 @ApiParam({ name: 'moduleId', type: Number })
-@Controller('modules/:moduleId/lessons')
+@Controller('courses/:courseId/modules/:moduleId/lessons')
 export class LessonsController {
   constructor(private readonly lessonsService: LessonsService) {}
 
+  // ========================
+  // CREATE
+  // ========================
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('TEACHER')
   @Post()
-  @ApiOperation({ summary: 'Criar uma nova aula dentro de um módulo' })
-  createLesson(
+  @ApiOperation({ summary: 'Criar uma nova aula dentro do módulo' })
+  create(
+    @Param('courseId', ParseIntPipe) courseId: number,
     @Param('moduleId', ParseIntPipe) moduleId: number,
-    @Body() createLessonDto: CreateLessonDto,
+    @Body() dto: CreateLessonDto,
+    @GetUser() user: RequestUserDto,
   ) {
-    return this.lessonsService.create(moduleId, createLessonDto);
+    return this.lessonsService.create({
+      courseId,
+      moduleId,
+      teacherId: user.sub,
+      dto,
+    });
   }
 
+  // ========================
+  // READ — LIST
+  // ========================
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @Get()
-  @ApiOperation({ summary: 'Listar todas as aulas do módulo' })
+  @ApiOperation({ summary: 'Listar aulas do módulo' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  listAllLesson(
+  findAll(
+    @Param('courseId', ParseIntPipe) courseId: number,
     @Param('moduleId', ParseIntPipe) moduleId: number,
     @GetUser() user: RequestUserDto,
     @Query('page') page = 1,
     @Query('limit') limit = 10,
   ) {
-    return this.lessonsService.listAll(
+    return this.lessonsService.findAll({
+      courseId,
       moduleId,
-      user.sub,
-      Number(page),
-      Number(limit),
-    );
+      userId: user.sub,
+      page: Number(page),
+      limit: Number(limit),
+    });
   }
 
+  // ========================
+  // READ — BY ID
+  // ========================
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @Get(':lessonId')
-  @ApiOperation({ summary: 'Listar detalhes de uma aula específica' })
+  @ApiOperation({ summary: 'Buscar detalhes de uma aula' })
   @ApiParam({ name: 'lessonId', type: Number })
-  listOneLesson(
+  findOne(
+    @Param('courseId', ParseIntPipe) courseId: number,
     @Param('moduleId', ParseIntPipe) moduleId: number,
     @Param('lessonId', ParseIntPipe) lessonId: number,
     @GetUser() user: RequestUserDto,
   ) {
-    return this.lessonsService.listOne(moduleId, lessonId, user.sub);
+    return this.lessonsService.findOne({
+      courseId,
+      moduleId,
+      lessonId,
+      userId: user.sub,
+    });
   }
 
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @Delete(':lessonId')
-  @ApiOperation({ summary: 'Excluir uma aula do módulo' })
-  @ApiParam({ name: 'lessonId', type: Number })
-  deleteLesson(
-    @Param('moduleId', ParseIntPipe) moduleId: number,
-    @Param('lessonId', ParseIntPipe) lessonId: number,
-  ) {
-    return this.lessonsService.delete(moduleId, lessonId);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  // ========================
+  // UPDATE
+  // ========================
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('TEACHER')
   @Patch(':lessonId')
-  @ApiOperation({ summary: 'Atualizar dados de uma aula' })
-  @ApiParam({ name: 'lessonId', type: Number })
-  updateLesson(
+  @ApiOperation({ summary: 'Atualizar uma aula' })
+  update(
+    @Param('courseId', ParseIntPipe) courseId: number,
     @Param('moduleId', ParseIntPipe) moduleId: number,
     @Param('lessonId', ParseIntPipe) lessonId: number,
-    @Body() updateLessonDto: UpdateLessonDto,
+    @Body() dto: UpdateLessonDto,
+    @GetUser() user: RequestUserDto,
   ) {
-    return this.lessonsService.update(moduleId, lessonId, updateLessonDto);
+    return this.lessonsService.update({
+      courseId,
+      moduleId,
+      lessonId,
+      teacherId: user.sub,
+      dto,
+    });
+  }
+
+  // ========================
+  // DELETE
+  // ========================
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('TEACHER')
+  @Delete(':lessonId')
+  @ApiOperation({ summary: 'Excluir uma aula' })
+  remove(
+    @Param('courseId', ParseIntPipe) courseId: number,
+    @Param('moduleId', ParseIntPipe) moduleId: number,
+    @Param('lessonId', ParseIntPipe) lessonId: number,
+    @GetUser() user: RequestUserDto,
+  ) {
+    return this.lessonsService.remove({
+      courseId,
+      moduleId,
+      lessonId,
+      teacherId: user.sub,
+    });
   }
 }
