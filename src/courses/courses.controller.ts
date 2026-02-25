@@ -33,6 +33,10 @@ import {
 export class CoursesController {
   constructor(private readonly courserService: CoursesService) {}
 
+  // ==========================
+  // CRIAR CURSO
+  // ==========================
+
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('TEACHER')
@@ -45,6 +49,10 @@ export class CoursesController {
   ) {
     return this.courserService.create(createCourseDto, user.sub);
   }
+
+  // ==========================
+  // LISTAR CURSO (SOMENTE PROFESSOR)
+  // ==========================
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('TEACHER')
@@ -61,8 +69,12 @@ export class CoursesController {
     );
   }
 
-  @Get()
-  @ApiOperation({ summary: 'Listar cursos com paginação' })
+  // ==========================
+  // LISTAR CURSO PÚBLICO
+  // ==========================
+
+  @Get('public')
+  @ApiOperation({ summary: 'Listar cursos públicos com paginação' })
   @ApiQuery({
     name: 'page',
     required: false,
@@ -75,24 +87,40 @@ export class CoursesController {
     example: 10,
     description: 'Quantidade de itens por página',
   })
-  @ApiResponse({ status: 200, description: 'Lista paginada de cursos' })
-  listAllCourses(@Query('page') page = 1, @Query('limit') limit = 10) {
+  @ApiResponse({
+    status: 200,
+    description: 'Lista paginada de cursos públicos',
+  })
+  listPublicCourses(@Query('page') page = 1, @Query('limit') limit = 10) {
     return this.courserService.listAll(Number(page), Number(limit));
   }
 
-  @Get(':id/public')
+  @Get('public/:id')
+  @ApiOperation({ summary: 'Buscar detalhes públicos de um curso' })
+  @ApiParam({ name: 'id', example: 1, description: 'ID do curso' })
+  @ApiResponse({ status: 200, description: 'Curso público encontrado' })
+  @ApiResponse({ status: 404, description: 'Curso não encontrado' })
   getPublicCourse(@Param('id', ParseIntPipe) id: number) {
     return this.courserService.getPublicCourse(id);
   }
 
+  // ==========================
+  // LISTAR CURSO PRIVADO (AUTENTICADO)
+  // ==========================
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  @ApiOperation({ summary: 'Buscar um curso pelo ID' })
+  @ApiOperation({ summary: 'Buscar curso completo (autenticado)' })
   @ApiParam({ name: 'id', example: 1, description: 'ID do curso' })
   @ApiResponse({ status: 200, description: 'Curso encontrado' })
   @ApiResponse({ status: 404, description: 'Curso não encontrado' })
-  listOneCourses(@Param('id', ParseIntPipe) id: number) {
+  getPrivateCourse(@Param('id', ParseIntPipe) id: number) {
     return this.courserService.listOne(id);
   }
+
+  // ==========================
+  // DELETAR CURSO
+  // ==========================
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -108,6 +136,10 @@ export class CoursesController {
     return this.courserService.delete(id, user.sub);
   }
 
+  // ==========================
+  // ATUALIZAR CURSO
+  // ==========================
+
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('TEACHER')
@@ -122,6 +154,10 @@ export class CoursesController {
   ) {
     return this.courserService.update(id, updateCourseDto, user.sub);
   }
+
+  // ==========================
+  // PUBLICAR CURSO
+  // ==========================
 
   @Patch(':id/publish')
   @UseGuards(JwtAuthGuard, RolesGuard)
