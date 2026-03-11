@@ -56,7 +56,7 @@ export class LessonsController {
   }
 
   // ========================
-  // READ — LIST
+  // READ — LIST - TEACHER
   // ========================
   @UseGuards(JwtAuthGuard)
   @Get()
@@ -80,7 +80,7 @@ export class LessonsController {
   }
 
   // ========================
-  // READ — BY ID
+  // READ — BY ID 
   // ========================
   @UseGuards(JwtAuthGuard)
   @Get(':lessonId')

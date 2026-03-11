@@ -12,10 +12,10 @@ describe('CoursesController', () => {
 
   const mockCourseService = {
     create: jest.fn(),
-    listAll: jest.fn(),
     listByTeacher: jest.fn(),
-    listOne: jest.fn(),
+    listAll: jest.fn(),
     getPublicCourse: jest.fn(),
+    listOne: jest.fn(),
     delete: jest.fn(),
     update: jest.fn(),
     publish: jest.fn(),
@@ -63,6 +63,7 @@ describe('CoursesController', () => {
 
   describe('CreateCourse', () => {
     it('should call courseService.create with dto and user.sub and return result', async () => {
+      // Arrange
       const mockDto: CreateCourseDto = {
         title: 'teste create',
         price: 100,
@@ -84,9 +85,11 @@ describe('CoursesController', () => {
       };
 
       coursesService.create.mockResolvedValue(mockResponse);
-
+      
+      // Action
       const result = await coursesController.createCourse(mockDto, mockUser);
 
+      // Assert
       expect(coursesService.create).toHaveBeenCalledWith(mockDto, 1);
       expect(coursesService.create).toHaveBeenCalledTimes(1);
       expect(result).toEqual(mockResponse);

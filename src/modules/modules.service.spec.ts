@@ -53,7 +53,6 @@ describe('ModulesService', () => {
 
     const dto = {
       title: 'Modulo 1',
-      description: 'Description Module 1',
     };
 
     it('should throw notFoundException if course does not exist', async () => {
@@ -450,7 +449,7 @@ describe('ModulesService', () => {
     it('should throw NotFoundException if module does not exist', async () => {
       prismaMock.course.findUnique.mockResolvedValue({
         id: courseId,
-        status: 'PUBLISH',
+        status: 'PUBLISHED',
       });
 
       prismaMock.purchase.findUnique.mockResolvedValue({

@@ -98,11 +98,15 @@ export class PurchasesService {
   listAllMyPurchases = async (studentId: number) => {
     const purchases = await this.prismaService.purchase.findMany({
       where: { studentId },
-      include: {
+      select: {
+        id: true,
+        price: true,
+        status: true,
+        createdAt: true,
         course: {
           select: {
+            id: true,
             title: true,
-            price: true,
             imageUrl: true,
             teacher: {
               select: {
@@ -112,10 +116,13 @@ export class PurchasesService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'asc' },
     });
 
-    return purchases;
+    return {
+      total: purchases.length,
+      purchases,
+    };
   };
 
   listAllPurchases = async (page = 1, limit = 10) => {

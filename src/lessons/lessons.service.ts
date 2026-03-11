@@ -25,12 +25,6 @@ export class LessonsService {
             id: true,
             status: true,
             teacherId: true,
-            purchases: {
-              select: {
-                studentId: true,
-                status: true,
-              },
-            },
           },
         },
       },
@@ -58,16 +52,17 @@ export class LessonsService {
     return lesson;
   }
 
-  private validateStudentAccess(course: any, userId: number) {
-    if (course.status === 'DRAFT') {
-      throw new UnauthorizedException('Este curso não está publicado');
-    }
+  private async validateStudentAccess(courseId: number, userId: number) {
 
-    const hasPurchase = course.purchases.some(
-      (p) => p.studentId === userId && p.status === 'PAID',
-    );
+    const purchase = await this.prisma.purchase.findFirst({
+      where: {
+        courseId,
+        studentId: userId,
+        status: 'PAID',
+      },
+    });
 
-    if (!hasPurchase) {
+    if (!purchase) {
       throw new ForbiddenException('Você não tem acesso a este conteúdo');
     }
   }
@@ -130,7 +125,7 @@ export class LessonsService {
     const module = await this.findModuleOrFail(courseId, moduleId);
 
     if (module.course.teacherId !== userId) {
-      this.validateStudentAccess(module.course, userId);
+      this.validateStudentAccess(module.course.id, userId);
     }
 
     const skip = (page - 1) * limit;
@@ -167,8 +162,9 @@ export class LessonsService {
   }) {
     const module = await this.findModuleOrFail(courseId, moduleId);
 
+    // só chama esse validateStudentAccess, sé o usuário que logar não for o usuário que criou o curso (teacher).
     if (module.course.teacherId !== userId) {
-      this.validateStudentAccess(module.course, userId);
+      this.validateStudentAccess(module.course.id, userId);
     }
 
     const lesson = await this.findLessonOrFail(moduleId, lessonId);

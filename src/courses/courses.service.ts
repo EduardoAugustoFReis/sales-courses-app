@@ -90,7 +90,7 @@ export class CoursesService {
       where: { id },
       include: {
         teacher: {
-          select: { name: true, },
+          select: { name: true },
         },
         modules: {
           select: {
@@ -143,7 +143,22 @@ export class CoursesService {
           select: { id: true, name: true },
         },
         modules: {
-          select: { id: true, title: true, position: true },
+          select: {
+            id: true,
+            title: true,
+            position: true,
+            lessons: {
+              select: {
+                id: true,
+                title: true,
+                position: true,
+                duration: true,
+                videoUrl: true,
+              },
+              orderBy: { position: 'asc' },
+            },
+          },
+          orderBy: { position: 'asc' },
         },
       },
     });
@@ -151,6 +166,34 @@ export class CoursesService {
     if (!course) {
       throw new NotFoundException('Curso não encontrado');
     }
+
+    return course;
+  };
+
+  listTeacherCourseById = async (courseId: number) => {
+    const course = await this.prismaService.course.findUnique({
+      where: { id: courseId},
+      select: {
+        id: true,
+        title: true,
+        imageUrl: true,
+        status: true,
+        price: true,
+        description: true,
+        createdAt: true,
+        teacher: {
+          select: {
+            name: true,
+            id: true,
+          }
+        }
+      },
+    })
+
+    if (!course) {
+      throw new NotFoundException('Curso não encontrado');
+    }
+
 
     return course;
   };
@@ -248,5 +291,4 @@ export class CoursesService {
       updatedCourse,
     };
   };
-
 }

@@ -119,6 +119,21 @@ export class CoursesController {
   }
 
   // ==========================
+  // LISTAR CURSO PRIVADO (AUTENTICADO)
+  // ==========================
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('TEACHER')
+  @Get(':id/teacher')
+  @ApiOperation({ summary: 'Buscar curso completo (autenticado)' })
+  @ApiParam({ name: 'id', example: 1, description: 'ID do curso' })
+  @ApiResponse({ status: 200, description: 'Curso encontrado' })
+  @ApiResponse({ status: 404, description: 'Curso não encontrado' })
+  getTeacherCourseById(@Param('id', ParseIntPipe) id: number) {
+    return this.courserService.listOne(id);
+  }
+
+  // ==========================
   // DELETAR CURSO
   // ==========================
 
